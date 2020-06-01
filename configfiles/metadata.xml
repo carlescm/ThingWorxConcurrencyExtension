@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><Entities>
+  <ExtensionPackages>
+    <ExtensionPackage 
+            name="ConcurrencyExtension" 
+            description="Concurrency Tools, based on the code provided by 'antondorf' on the ThingWorx Developers Community." 
+            vendor="" 
+            packageVersion="0.1.25" 
+            minimumThingWorxVersion="6.5.0">
+      <JarResources>
+        <FileResource type="JAR" file="ConcurrencyExtension.jar"/>
+      </JarResources>
+    </ExtensionPackage>
+  </ExtensionPackages>
+  <ThingShapes>
+    <ThingShape 
+            name="wupMutexTS" 
+            description="Provides mutex blocking capabilities to the thing that implements this ThingShape, the mutex it's based on java ReentrantLock class with a fair policy activated." 
+            className="com.wup.wupMutexTS" 
+            aspect.isSystemObject="false">
+      <avatar/>
+    </ThingShape>
+    <ThingShape 
+            name="wupCounterTS" 
+            description="Provides a 'autoincrement' counter with concurrency support in order to ensure atomic increases." 
+            className="com.wup.wupCounterTS" 
+            aspect.isSystemObject="false">
+      <avatar/>
+    </ThingShape>
+  </ThingShapes>
+  <ScriptFunctionLibraries>
+      <ScriptFunctionLibrary 
+        name="ConcurrencyExtension"
+        description="Some tools for concurrenty, also to recover Concurrency stats as we can't create a subsystem from one extension"
+        className="com.wup.wupConcurrencySC">
+      <FunctionDefinitions>
+        <FunctionDefinition name="GetTotalActiveLocks_wupMutexTS"  description="Returns the total active locks.">
+            <ResultType name="result" baseType="LONG"   description="The total ammount."/>
+        </FunctionDefinition>
+        <FunctionDefinition name="GetTotalActiveWaiting_wupMutexTS"  description="Returns tht total active threads which are waiting on a lock.">
+            <ResultType name="result" baseType="LONG"   description="The total ammount."/>
+        </FunctionDefinition>
+        <FunctionDefinition name="GetTotalThingsLocksUsage_wupMutexTS"  description="Returns the total number of mutex created on Things.">
+            <ResultType name="result" baseType="LONG"   description="The total ammount."/>
+        </FunctionDefinition>
+      </FunctionDefinitions>
+      </ScriptFunctionLibrary>
+  </ScriptFunctionLibraries>
+  <DataShapes>
+  </DataShapes>
+  <Things>
+  </Things>
+</Entities>
