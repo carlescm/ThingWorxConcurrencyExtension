@@ -90,11 +90,12 @@ public class wupMutexTS extends wupBaseThingShape {
     @ThingworxServiceDefinition(
             name = "Lock_wupMutexTS", 
             description = "Get a exclusive Lock for this thing. Recomended usage:\n "+
+            " var meName = me.name;\n"+
             " me.Lock_wupMutexTS(); \n"+
             " try {\n"+
             "   // -- whatever code that needs to be mutex \n"+
             " } finally { \n"+
-            "   me.Unlock_wupMutexTS(); \n"+
+            "   Things[meName].Unlock_wupMutexTS(); \n"+
             "}", 
             category = "WUP", 
             isAllowOverride = false, 

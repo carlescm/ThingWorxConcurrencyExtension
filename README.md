@@ -34,20 +34,23 @@ Import the extension (ConcurrencyExtension.zip) with ThingWorx Composer Import E
 ### Mutex 
 
 We implemented a mutex ThingShape with Java ReentrantLook with fair execution enabled which allows to synchronize and block thread execution.
-Blocking it's done at Thing's level, et means each Thing which implements the wupMutexTS ThingShape has it's own ReentrantLook.
+Blocking it's done at Thing's level, it means that each Thing which implements the wupMutexTS ThingShape has it's own ReentrantLook.
 
 #### Mutex Usage Samples
 
 Just add the wupMutexTS to the Thing or ThingTemplate to whom you want to add mutex blocking features.
 
+On the Mutex Usage samples you will see the usage of copying the me.name in memory? The reason, it's that in between your locking a ThingRestart/ThingDesignSave may happen, and if garbage collector takes place "me" it's not valid anymore as the Thing had restarted and it's another instance in memory and you will get a "zombie" mutex blocking any execution on it!
+
 In order to lock a piece of code in Javascript, and ensure that only one thread its entering on it at a time:
 
 ```javascript
+var meName = me.name;
 me.Lock_wupMutexTS();
 try {
     // -- whatever code that needs to be mutex
 } finally { 
-    me.Unlock_wupMutexTS();
+    Things[meName].Unlock_wupMutexTS();
 }
 ```
 You can also tryLock a piece of code, in order to allow one thread and only one and discard the others.
@@ -55,11 +58,12 @@ For instance it may be interesting if you have a timer which triggers once in a 
 consecutive triggers are executed at the same time:
 
 ```javascript
+var meName = me.name;
 if (me.TryLock_wupMutexTS()===true) {
     try {
         // -- whatever code that needs to be mutex
     } finally { 
-        me.Unlock_wupMutexTS();
+        Things[meName].Unlock_wupMutexTS();
     }
 } else {
     // -- The lock was already got and previous code its skipped
@@ -70,11 +74,12 @@ You can create more than one mutex per thing, all wupMutexTS services has an opt
 Each different passed "id" will create its own ReentrantLook. Sample with previous code but with a specific lock for one specific timer.
 
 ```javascript
+var meName = me.name;
 if (me.TryLock_wupMutexTS({ id: "timer1" })===true) {
     try {
         // -- whatever code that needs to be mutex
     } finally { 
-        me.Unlock_wupMutexTS({ id: "timer1" });
+        Things[meName].Unlock_wupMutexTS({ id: "timer1" });
     }
 } else {
     // -- The lock was already got and previous code it's skipped
