@@ -3,7 +3,6 @@ package com.wup;
 import com.thingworx.metadata.annotations.ThingworxServiceDefinition;
 import com.thingworx.metadata.annotations.ThingworxServiceResult;
 
-
 public class wupConcurrencySC  {
 
     @ThingworxServiceDefinition(
@@ -14,7 +13,11 @@ public class wupConcurrencySC  {
             aspects = {"isAsync:false" }
             )
     @ThingworxServiceResult(name = "result", description = "The total ammount.", baseType = "LONG", aspects = {})
-    public static long GetTotalActiveLocks_wupMutexTS() {
+    public static long GetTotalActiveLocks_wupMutexTS(
+            org.mozilla.javascript.Context cx,
+            org.mozilla.javascript.Scriptable thisObj,
+             Object[] args,
+             org.mozilla.javascript.Function funObj) {
             return wupMutexTS.getTotalActiveLocks();
     }
 
@@ -26,7 +29,11 @@ public class wupConcurrencySC  {
         aspects = {"isAsync:false" }
         )
     @ThingworxServiceResult(name = "result", description = "The total ammount.", baseType = "LONG", aspects = {})
-    public static long GetTotalActiveWaiting_wupMutexTS() {
+    public static long GetTotalActiveWaiting_wupMutexTS(
+        org.mozilla.javascript.Context cx,
+        org.mozilla.javascript.Scriptable thisObj,
+         Object[] args,
+         org.mozilla.javascript.Function funObj) {
             return wupMutexTS.getTotalActiveWaiting();
     }
     
@@ -38,7 +45,11 @@ public class wupConcurrencySC  {
         aspects = {"isAsync:false" }
         )
     @ThingworxServiceResult(name = "result", description = "The total ammount.", baseType = "LONG", aspects = {})
-    public static long GetTotalThingsLocksUsage_wupMutexTS() {
+    public static long GetTotalThingsLocksUsage_wupMutexTS(
+        org.mozilla.javascript.Context cx,
+        org.mozilla.javascript.Scriptable thisObj,
+         Object[] args,
+         org.mozilla.javascript.Function funObj) {
             return wupMutexTS.getTotalThingsLocksUsage();
     }
 

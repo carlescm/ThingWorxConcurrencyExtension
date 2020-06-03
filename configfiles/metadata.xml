@@ -4,7 +4,7 @@
             name="ConcurrencyExtension" 
             description="Concurrency Tools, based on the code provided by 'antondorf' on the ThingWorx Developers Community." 
             vendor="" 
-            packageVersion="0.1.26" 
+            packageVersion="0.1.27" 
             minimumThingWorxVersion="6.5.0">
       <JarResources>
         <FileResource type="JAR" file="ConcurrencyExtension.jar"/>
