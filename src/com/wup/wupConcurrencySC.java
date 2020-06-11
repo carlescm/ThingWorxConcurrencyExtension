@@ -53,4 +53,81 @@ public class wupConcurrencySC  {
             return wupMutexTS.getTotalThingsLocksUsage();
     }
 
+   
+    @ThingworxServiceDefinition(
+            name = "Lock_wupMutexTS", 
+            description = "Get a exclusive Lock for the given id, for instance a Thing Name. Recomended usage:\n "+
+            " var meName = me.name;\n"+
+            " Lock_wupMutexTS(meName); \n"+
+            " try {\n"+
+            "   // -- whatever code that needs to be mutex \n"+
+            " } finally { \n"+
+            "   Unlock_wupMutexTS(meName); \n"+
+            "}", 
+            category = "WUP", 
+            isAllowOverride = false, 
+            aspects = {"isAsync:false" }
+            )
+    @ThingworxServiceResult(name = "result", description = "", baseType = "NOTHING", aspects = {})
+    public static void Lock_wupMutexTS(
+        org.mozilla.javascript.Context cx,
+        org.mozilla.javascript.Scriptable thisObj,
+         Object[] args,
+         org.mozilla.javascript.Function funObj) throws Exception {
+          wupMutexTS.lock(args[0].toString());  
+    }
+
+    @ThingworxServiceDefinition(
+        name = "TryLock_wupMutexTS", 
+        description = "Get a exclusive Lock for this thing with or without a timout.",
+        category = "WUP", 
+        isAllowOverride = false, 
+        aspects = {"isAsync:false" }
+        )
+    @ThingworxServiceResult(name = "result", description = "Returns true if the lock was acquired, false otherwise. If -1, does a tryLock without a timeout", baseType = "BOOLEAN", aspects = {})
+    public static Boolean TryLock_wupMutexTS(
+        org.mozilla.javascript.Context cx,
+        org.mozilla.javascript.Scriptable thisObj,
+        Object[] args,
+        org.mozilla.javascript.Function funObj) throws Exception {
+        Long timeOut = Long.valueOf(-1);
+        if (args.length>1) {
+            timeOut = Long.parseLong(args[1].toString());
+        }
+        return wupMutexTS.tryLock(args[0].toString(),timeOut);  
+    }
+
+    @ThingworxServiceDefinition(
+            name = "Unlock_wupMutexTS", 
+            description = "Unlock a exclusive Lock for the given id, for instance a Thing Name.",
+            category = "WUP", 
+            isAllowOverride = false, 
+            aspects = {"isAsync:false" }
+            )
+    @ThingworxServiceResult(name = "result", description = "", baseType = "NOTHING", aspects = {})
+    public static void Unlock_wupMutexTS(
+        org.mozilla.javascript.Context cx,
+        org.mozilla.javascript.Scriptable thisObj,
+         Object[] args,
+         org.mozilla.javascript.Function funObj) throws Exception {
+          wupMutexTS.unlock(args[0].toString());  
+    }
+
+    @ThingworxServiceDefinition(
+        name = "IsLocked_wupMutexTS", 
+        description = "Check if current lock it's acquiered.",
+        category = "WUP", 
+        isAllowOverride = false, 
+        aspects = {"isAsync:false" }
+        )
+    @ThingworxServiceResult(name = "result", description = "", baseType = "BOOLEAN", aspects = {})
+    public static Boolean IsLocked_wupMutexTS(
+        org.mozilla.javascript.Context cx,
+        org.mozilla.javascript.Scriptable thisObj,
+        Object[] args,
+        org.mozilla.javascript.Function funObj) throws Exception {
+        return wupMutexTS.isLocked(args[0].toString());  
+    }
+
+
 }

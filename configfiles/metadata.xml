@@ -4,7 +4,7 @@
             name="ConcurrencyExtension" 
             description="Concurrency Tools, based on the code provided by 'antondorf' on the ThingWorx Developers Community." 
             vendor="" 
-            packageVersion="0.1.27" 
+            packageVersion="0.1.33" 
             minimumThingWorxVersion="6.5.0">
       <JarResources>
         <FileResource type="JAR" file="ConcurrencyExtension.jar"/>
@@ -41,6 +41,38 @@
         </FunctionDefinition>
         <FunctionDefinition name="GetTotalThingsLocksUsage_wupMutexTS"  description="Returns the total number of mutex created on Things.">
             <ResultType name="result" baseType="LONG"   description="The total ammount."/>
+        </FunctionDefinition>
+        <FunctionDefinition name="Lock_wupMutexTS"  description="Get a exclusive Lock for the given id, for instance a Thing Name. Recomended usage:
+             var meName = me.name;
+             Lock_wupMutexTS(meName);
+             try {
+               // -- whatever code that needs to be mutex
+             } finally {
+               Unlock_wupMutexTS(meName);
+            }">
+            <ParameterDefinitions>
+              <FieldDefinition name="id" description="Lock Id, you must use it on the unlock process" baseType="STRING"/>
+            </ParameterDefinitions>
+            <ResultType name="result" baseType="NOTHING"  description="."/>
+        </FunctionDefinition>
+        <FunctionDefinition name="TryLock_wupMutexTS"  description="Get a exclusive Lock for the given id, with or without a timout. timeOut parameter it's optional.">
+            <ParameterDefinitions>
+              <FieldDefinition name="id" description="Lock Id, you must use it on the unlock process" baseType="STRING"/>
+              <FieldDefinition name="timeOut" description="Timeout in milliseconds. Default = -1 if you don't want a timeout -> only one it's allowed others are discarded." baseType="LONG"/>
+            </ParameterDefinitions>
+            <ResultType name="result" baseType="BOOLEAN"  description="Returns true if the lock was acquired, false otherwise. If -1, does a tryLock without a timeout"/>
+        </FunctionDefinition>
+        <FunctionDefinition name="Unlock_wupMutexTS"  description="Freeds the current lock for the given id, for instance a Thing Name.">
+            <ParameterDefinitions>
+              <FieldDefinition name="id" description="Lock Id, used on the Lock/TryLock counterpart" baseType="STRING"/>
+            </ParameterDefinitions>
+            <ResultType name="result" baseType="NOTHING"  description="."/>
+        </FunctionDefinition>
+        <FunctionDefinition name="IsLocked_wupMutexTS"  description="Check if given lock id it's acquiered.">
+            <ParameterDefinitions>
+              <FieldDefinition name="id" description="Lock Id to check" baseType="STRING"/>
+            </ParameterDefinitions>
+            <ResultType name="result" baseType="BOOLEAN"  description="Returns true if the lock was acquired, false otherwise. If -1, does a tryLock without a timeout"/>
         </FunctionDefinition>
       </FunctionDefinitions>
       </ScriptFunctionLibrary>

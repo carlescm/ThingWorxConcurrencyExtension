@@ -73,17 +73,84 @@ public class wupMutexTS extends wupBaseThingShape {
         return wupMutexTS._instanceMtx.size();
      }
 
+     private static ReentrantLock getMutexById(String id) throws Exception {
+        ReentrantLock meMtx = wupMutexTS._instanceMtx.get(id);
+        if (meMtx == null) {
+            meMtx = wupMutexTS._instanceMtx.computeIfAbsent(id, k -> new ReentrantLock(true));
+        }
+        return meMtx;
+     }
 
-    private ReentrantLock getInstanceMutex(String id/*optional*/) throws Exception {
+     public static void lock(String id) throws Exception {
+        final ReentrantLock mutex = wupMutexTS.getMutexById(id);
+        if (mutex != null) {
+            wupMutexTS.incrementWaiting();
+            mutex.lock();
+            // -- we must ensure that the lock it's returned, otherwise we must unlock here.
+            try {
+                wupMutexTS.decrementWaiting();
+                wupMutexTS.incrementLocks();
+            } catch(Exception e) {
+                mutex.unlock();
+                throw new Exception("Lock_wupMutexTS/Failed to to additional steps, waiting counter maybe corrupted.");
+            }
+        } else {
+            throw new Exception("Lock_wupMutexTS/Cannot get instance Mutex");
+        }
+     }
+
+     public static Boolean tryLock(String id,Long timeOut) throws Exception {
+        final ReentrantLock mutex = wupMutexTS.getMutexById(id);
+        if (mutex != null) {
+            final Boolean result;
+            Boolean incremented = false;
+            if (((long)timeOut)<0) {
+              result = mutex.tryLock();
+            } else {
+              incremented = true;
+              wupMutexTS.incrementWaiting();
+              result = mutex.tryLock((long) timeOut, TimeUnit.MILLISECONDS);      
+            }
+
+            if (result==true) {
+                // -- we must ensure that the lock it's returned, otherwise we must unlock here.
+                try{
+                  if (incremented==true) wupMutexTS.decrementWaiting();  
+                   wupMutexTS.incrementLocks();
+                } catch(Exception e) {
+                    mutex.unlock();
+                    throw new Exception("TryLock_wupMutexTS/Failed to do additional steps, waiting counter maybe corrupted.");
+                }
+            }
+            return result;
+        } else {
+            throw new Exception("TryLock_wupMutexTS/Cannot get instance Mutex");
+        }
+     }
+     public static void unlock(String id) throws Exception {
+        final ReentrantLock mutex = wupMutexTS.getMutexById(id);
+        if (mutex != null) {
+            mutex.unlock();
+            wupMutexTS.decrementLocks();
+        } else {
+            throw new Exception("Unlock_wupMutexTS/Cannot get instance Mutex");
+        }
+     }
+
+     public static Boolean isLocked(String id) throws Exception {
+        final ReentrantLock mutex = wupMutexTS.getMutexById(id);
+        if (mutex != null) {
+            return mutex.isLocked();
+        }
+        return false;
+     }
+
+     private String getInstanceMutexId(String id/*optional*/) throws Exception {
         String mutexId =  this.getMeName();
         if (id!=null) {
             if (!id.equals("")) mutexId = mutexId+"/"+id;
         }
-        ReentrantLock meMtx = wupMutexTS._instanceMtx.get(mutexId);
-        if (meMtx == null) {
-            meMtx = wupMutexTS._instanceMtx.computeIfAbsent(mutexId, k -> new ReentrantLock(true));
-        }
-        return meMtx;
+        return mutexId;
     }
  
 
@@ -95,8 +162,9 @@ public class wupMutexTS extends wupBaseThingShape {
             " try {\n"+
             "   // -- whatever code that needs to be mutex \n"+
             " } finally { \n"+
-            "   Things[meName].Unlock_wupMutexTS(); \n"+
-            "}", 
+            "    // -- The following line it's thing restarts almost prone. \n"+
+            "   for(var i=0;i<120;i++) { try { Things[meName].Unlock_wupMutexTS(); break; } catch(err) { pause(1000); } }  \n"+
+            " }", 
             category = "WUP", 
             isAllowOverride = false, 
             aspects = {"isAsync:false" }
@@ -109,21 +177,7 @@ public class wupMutexTS extends wupBaseThingShape {
                     aspects={"isRequired:false"}
                     ) final String id
     ) throws Exception {
-        final ReentrantLock meMtx = this.getInstanceMutex(id);
-        if (meMtx != null) {
-            wupMutexTS.incrementWaiting();
-            meMtx.lock();
-            // -- we must ensure that the lock it's returned, otherwise we must unlock here.
-            try {
-                wupMutexTS.decrementWaiting();
-                wupMutexTS.incrementLocks();
-            } catch(Exception e) {
-                meMtx.unlock();
-                throw new Exception("Lock_wupMutexTS/Failed to to additional steps, waiting counter maybe corrupted.");
-            }
-        } else {
-            throw new Exception("Lock_wupMutexTS/Cannot get instance Mutex");
-        }
+        wupMutexTS.lock(this.getInstanceMutexId(id));
     }
 
     @ThingworxServiceDefinition(name = "TryLock_wupMutexTS", description = "Get a exclusive Lock for this thing with or without a timout.", category = "WUP", isAllowOverride = false, aspects = {
@@ -142,32 +196,7 @@ public class wupMutexTS extends wupBaseThingShape {
                                 "defaultValue:-1"
                 }) final Long timeOut
     ) throws Exception {
-        final ReentrantLock meMtx = this.getInstanceMutex(id);
-        if (meMtx != null) {
-            final Boolean result;
-            Boolean incremented = false;
-            if (((long)timeOut)<0) {
-              result = meMtx.tryLock();
-            } else {
-              incremented = true;
-              wupMutexTS.incrementWaiting();
-              result = meMtx.tryLock((long) timeOut, TimeUnit.MILLISECONDS);      
-            }
-
-            if (result==true) {
-                // -- we must ensure that the lock it's returned, otherwise we must unlock here.
-                try{
-                  if (incremented==true) wupMutexTS.decrementWaiting();  
-                   wupMutexTS.incrementLocks();
-                } catch(Exception e) {
-                    meMtx.unlock();
-                    throw new Exception("TryLock_wupMutexTS/Failed to do additional steps, waiting counter maybe corrupted.");
-                }
-            }
-            return result;
-        } else {
-            throw new Exception("TryLock_wupMutexTS/Cannot get instance Mutex");
-        }
+        return wupMutexTS.tryLock(this.getInstanceMutexId(id), timeOut);
     }
 
     @ThingworxServiceDefinition(name = "Unlock_wupMutexTS", description = "Freeds the current lock for the thing.", category = "WUP", isAllowOverride = false, aspects = {
@@ -180,13 +209,7 @@ public class wupMutexTS extends wupBaseThingShape {
         aspects={"isRequired:false"}
         ) final String id
     ) throws Exception {
-        final ReentrantLock meMtx = this.getInstanceMutex(id);
-        if (meMtx != null) {
-            meMtx.unlock();
-            wupMutexTS.decrementLocks();
-        } else {
-            throw new Exception("Unlock_wupMutexTS/Cannot get instance Mutex");
-        }
+        wupMutexTS.unlock(this.getInstanceMutexId(id));
     }
 
     @ThingworxServiceDefinition(name = "IsLocked_wupMutexTS", description = "Check if current lock it's acquiered.", category = "WUP", isAllowOverride = false, aspects = {
@@ -199,11 +222,7 @@ public class wupMutexTS extends wupBaseThingShape {
                 aspects={"isRequired:false"}
                 ) final String id
     ) throws Exception {
-        final ReentrantLock meMtx = this.getInstanceMutex(id);
-        if (meMtx != null) {
-            return meMtx.isLocked();
-        }
-        return false;
+        return wupMutexTS.isLocked(this.getInstanceMutexId(id));
     }
 
 }
